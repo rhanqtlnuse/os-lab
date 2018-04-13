@@ -15,15 +15,15 @@ main:
         syscall
 
 read:
-        mov     rax, 0              ; 读取一行输入
+        mov     rax, 0                          ; 读取一行输入
         mov     rdi, 1
         mov     rsi, input
         mov     rdx, 8
         syscall
 
-        xor     r8, r8              ; 清空r8，将其作为指针
+        xor     r8, r8                          ; 清空r8，将其作为指针
 getLower:
-        cmp     byte[input + r8], 0x20    ; 是否是空格
+        cmp     byte[input + r8], 0x20          ; 是否是空格
         je      getUpper
         movsx   r9, byte[input + r8]
         sub     r9, 0x30
@@ -142,24 +142,24 @@ boundException:
         mov     rsi, ERROR
         mov     rdx, 54
         syscall
-        
+
 done:
         mov     rax, 60
         xor     rdi, rdi
         syscall
         
         section .bss
-a:      resb    65                  ; 存放其中一个
-b:      resb    64                  ; 存放另一个
-c:      resb    64                  ; 暂存中间结果
+a:      resb    65                              ; 存放其中一个
+b:      resb    64                              ; 存放另一个
+c:      resb    64                              ; 暂存中间结果
 
         section .data
 TITLE:  db      "OS_Lab_1: Fibonacci Sequence", 10
 PROMPT: db      "Please input x and y: "
 ERROR:  db      "Lower bound must be less than or equal to upper bound", 10
-input:  dq      0                   ; 输入
-lower:  dq      0                   ; 区间左边界
-upper:  dq      0                   ; 区间右边界
+input:  dq      0                               ; 输入
+lower:  dq      0                               ; 区间左边界
+upper:  dq      0                               ; 区间右边界
 COLOR_COUNT:
         dq      5
 color_black:
