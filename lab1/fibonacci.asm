@@ -8,7 +8,6 @@ main:
         mov     rsi, TITLE
         mov     rdx, 29
         syscall
-
         mov     rax, 1
         mov     rdi, 1
         mov     rsi, PROMPT
@@ -45,58 +44,50 @@ getUpper:
         mov     [upper], r9
         inc     r8
         jmp     getUpper
-
 checkBound:
         mov     r8, [lower]
         mov     r9, [upper]
         cmp     r8, r9
-        jle     initialize
-        mov     rax, 1
-        mov     rdi, 1
-        mov     rsi, error
-        mov     rdx, 54
-        syscall
-        jmp     done
+        jle     initialize1
+        jmp     boundException
 
-initialize:
-        xor     r8, r8          ; r8 = f(0)
-        xor     r9, r9          ; r9 = f(1)
-        inc     r9
-        xor     r10, r10
-        xor     r11, r11        ; 计数器
+initialize1:
+        xor     r8, r8
+initialize2:
+        mov     byte[a + r8], 0x30
+        mov     byte[b + r8], 0x30
+        mov     byte[c + r8], 0x30
+        inc     r8
+        cmp     r8, 64
+        jl      initialize2
+        mov     byte[a + 64], 0x0A              ; 给a末尾加上换行符，因为a会输出
+        mov     byte[b], 0x31                   ; 将b初始化为1
+        xor     r8, r8                          ; 计数器
 begin:
-        cmp     r11, [lower]
+        cmp     r8, [lower]
         je      print
-        mov     r10, r9
-        add     r9, r8
-        mov     r8, r10
-        inc     r11
+        ; 进行相加
+        inc     r8
         jmp     begin
 print:
-        push    r8
-        push    r9
-        push    r10
-        push    r11
-        sub     rsp, 8
-
-        mov     r12, r11
-        sub     r12, [lower]
-        cmp     r12, 5
+        mov     r9, r8
+        sub     r9, [lower]
+        cmp     r9, [COLOR_COUNT]
         jl      setColor
 mod:
-        sub     r12, 5
-        cmp     r12, 5
+        sub     r9, [COLOR_COUNT]
+        cmp     r9, [COLOR_COUNT]
         jge     mod
 setColor:
-        cmp     r12, 0
+        cmp     r9, 0
         je      setBlack
-        cmp     r12, 1
+        cmp     r9, 1
         je      setRed
-        cmp     r12, 2
+        cmp     r9, 2
         je      setGreen
-        cmp     r12, 3
+        cmp     r9, 3
         je      setYellow
-        cmp     r12, 4
+        cmp     r9, 4
         je      setBlue
 setBlack:
         mov     rax, 4
@@ -104,84 +95,73 @@ setBlack:
         mov     rcx, color_black
         mov     rdx, color_black.len
         int     80h
-        je      next
+        jmp     next
 setRed:
         mov     rax, 4
         mov     rbx, 1
         mov     rcx, color_red
         mov     rdx, color_red.len
         int     80h
-        je      next
+        jmp     next
 setGreen:
         mov     rax, 4
         mov     rbx, 1
         mov     rcx, color_green
         mov     rdx, color_green.len
         int     80h
-        je      next
+        jmp     next
 setYellow:
         mov     rax, 4
         mov     rbx, 1
         mov     rcx, color_yellow
         mov     rdx, color_yellow.len
         int     80h
-        je      next
+        jmp     next
 setBlue:
         mov     rax, 4
         mov     rbx, 1
         mov     rcx, color_blue
         mov     rdx, color_blue.len
         int     80h
-        je      next
+        jmp     next
 next:
-        add     rsp, 8
-        pop     r11
-        pop     r10
-        pop     r9
-        pop     r8
-        push    r8
-        push    r9
-        push    r10
-        push    r11
-        sub     rsp, 8
-
         mov     rdi, format
         mov     rsi, r8
         xor     rax, rax
         call    printf
         
-        add     rsp, 8
-        pop     r11
-        pop     r10
-        pop     r9
-        pop     r8
-        
-        cmp     r11, [upper]
+        cmp     r8, [upper]
         je      done
-        mov     r10, r9
-        add     r9, r8
-        mov     r8, r10
-        inc     r11
+        ; 进行相加
+        inc     r8
         jmp     print
 
+boundException:
+        mov     rax, 1
+        mov     rdi, 1
+        mov     rsi, ERROR
+        mov     rdx, 54
+        syscall
+        
 done:
         mov     rax, 60
         xor     rdi, rdi
         syscall
-
-toString:
-        mov     r8, 0               ; 作为指针
         
         section .bss
-result: resb    50                  ; 结果
+a:      resb    65                  ; 存放其中一个
+b:      resb    64                  ; 存放另一个
+c:      resb    64                  ; 暂存中间结果
 
         section .data
 TITLE:  db      "OS_Lab_1: Fibonacci Sequence", 10
 PROMPT: db      "Please input x and y: "
-error:  db      "Lower bound must be less than or equal to upper bound", 10
+ERROR:  db      "Lower bound must be less than or equal to upper bound", 10
 input:  dq      0                   ; 输入
 lower:  dq      0                   ; 区间左边界
 upper:  dq      0                   ; 区间右边界
+COLOR_COUNT:
+        dq      5
 color_black:
         db      1Bh, '[30;1m', 0
 .len    equ     $ - color_black
