@@ -4,22 +4,49 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-void my_help(const char *command);
+/**
+ * C中不能用const常量声明数组长度
+ */
+#define PARAM_COUNT 4
+
+typedef struct _pl {
+    char *params[PARAM_COUNT];
+} param_list;
+
+/**
+ * @param list 只使用第一个参数，作为char *command
+ */
+void my_help(const param_list *list);
 
 /**
  * 不考虑出现以“-p”和“-t”为路径名的情况，shell中将这样的字符串当作参数而不是路径名
  * 比如“ls -ahl”，即使当前目录下有名为“-ahl”的目录，也将“-ahl”作为参数来使用，
  * 这个函数与其一致
+ * 
+ * @param list 只使用前两个参数，分别作为char *format, char *path
  */
-void my_ls(const char *format, const char *path);
-void my_cat(const char *filename);
-void my_count(const char *path);
-void my_exit();
+void my_ls(const param_list *list);
+
+/**
+ * @param list 只使用第一个参数，作为char *filename
+ */
+void my_cat(const param_list *list);
+
+/**
+ * @param list 只使用第一个参数，作为char *path
+ */
+void my_count(const param_list *list);
+
+/**
+ * @param list 不使用任何参数
+ */
+void my_exit(const param_list *list);
 
 /**
  * 命令数
  */
 const int COMMAND_COUNT = 5;
+
 /**
  * 命令名
  */
@@ -30,6 +57,7 @@ const char *COMMAND_NAME[] = {
     "count",
     "exit"
 };
+
 /**
  * 命令格式
  */
@@ -40,12 +68,13 @@ const char *COMMAND_FORMAT[] = {
     "count <path>",
     "exit"
 };
+
 /**
  * 命令说明（描述）
  */
 const char *COMMAND_DESCRIPTION[] = {
     "缺省命令名时输出所有的命令及其说明，否则输出指定命令的说明",
-    "p代表plain和t代表tree，是输出格式，缺省时使用plain格式；缺省路径名时列出当前目录下的普通文件和目录",
+    "p代表plain（普通输出），t代表tree（树形输出），缺省时使用plain格式；缺省路径名时列出当前目录下的普通文件和目录",
     "显示<filename>的内容",
     "递归地显示指定目录及其所有子目录下的普通文件数和目录数",
     "退出程序"
@@ -86,9 +115,18 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void my_help(const char *command) {
-    if (command != NULL) {
-
+void my_help(const param_list *list) {
+    if (list->params[0] != NULL) {
+        int i;
+        for (i = 0; i < COMMAND_COUNT && strcmp(list->params[0], COMMAND_NAME[i]) != 0; i++)
+            ;
+        if (i < COMMAND_COUNT) {
+            printf("%s: \n", COMMAND_NAME[i]);
+            printf("  格式: %s\n", COMMAND_FORMAT[i]);
+            printf("  说明: \n    %s\n", COMMAND_DESCRIPTION[i]);
+        } else {
+            printf("Error: %s: command not found\n", list->params[0]);
+        }
     } else {
         for (int i = 0; i < COMMAND_COUNT; i++) {
             printf("%s: \n", COMMAND_NAME[i]);
@@ -97,27 +135,53 @@ void my_help(const char *command) {
         }
     }
 }
-void my_ls(const char *format, const char *path) {
+void my_ls(const param_list *list) {
     printf("ls\n");
 }
-void my_cat(const char *filename) {
+void my_cat(const param_list *list) {
     printf("cat\n");
 }
-void my_count(const char *path) {
+void my_count(const param_list *list) {
     printf("count\n");
 }
-void my_exit() {
+void my_exit(const param_list *list) {
     exit(0);
 }
 
 void process_input(char *buffer) {
+    /**
+     * 功能函数入口
+     */
+    void (*COMMAND_ENTRY[])(const param_list *) = {
+        my_help,
+        my_ls,
+        my_cat,
+        my_count,
+        my_exit
+    };
+
     char *cmd = strtok(buffer, " ");
     int i;
     for (i = 0; i < COMMAND_COUNT && strcmp(cmd, COMMAND_NAME[i]) != 0; i++)
         ;
     if (i < COMMAND_COUNT) {
-        char *param = strtok(buffer, " ");
-        while (param)
+        param_list *list = (param_list *) malloc(sizeof(param_list));
+        for (int j = 0; j < PARAM_COUNT; j++) {
+            list->params[j] = NULL;
+        }
+
+        char *param;
+        int counter = 0;
+        while (param = strtok(NULL, " ")) {
+            list->params[counter++] = param;
+        }
+        /********* for debug **********/
+        printf("count: %d\n", counter);
+        for (int k = 0; k < counter; k++) {
+            printf("[%s]\n", list->params[k]);
+        }
+        /********* for debug **********/
+        COMMAND_ENTRY[i](list);
     } else {
         printf("Error: %s: command not found\n", cmd);
     }
