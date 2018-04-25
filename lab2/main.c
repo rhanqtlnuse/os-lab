@@ -1,3 +1,21 @@
+/**
+ * 日后扩展：
+ *   1. 实现指定输出格式（比如-p普通输出格式、-t树形输出格式）
+ *   2. 实现cd、mkdir、rm、touch等在Linux中常用的命令
+ */
+//  输出格式：
+//  ┣━ house
+//  ┃  ┣━ room
+//  ┃  ┃  ┣━ kitchen
+//  ┃  ┃  ┃  ┗━ path.txt
+//  ┃  ┃  ┗━ bed.txt
+//  ┃  ┣━ table.txt
+//  ┃  ┗━ chair.txt
+//  ┣━ animal
+//  ┃  ┣━ bird
+//  ┃  ┗━ cat.txt
+//  ┣━ river.txt
+//  ┗━ mountain.txt
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,11 +37,7 @@ typedef struct _pl {
 void my_help(const param_list *list);
 
 /**
- * 不考虑出现以“-p”和“-t”为路径名的情况，shell中将这样的字符串当作参数而不是路径名
- * 比如“ls -ahl”，即使当前目录下有名为“-ahl”的目录，也将“-ahl”作为参数来使用，
- * 这个函数与其一致
- * 
- * @param list 只使用前两个参数，分别作为char *format, char *path
+ * @param list 只使用第一个参数，作为char *format, char *path
  */
 void my_ls(const param_list *list);
 
@@ -63,7 +77,7 @@ const char *COMMAND_NAME[] = {
  */
 const char *COMMAND_FORMAT[] = {
     "help[ command]",
-    "ls[ -p|-t][ path]",
+    "ls[ path]",
     "cat <filename>",
     "count <path>",
     "exit"
@@ -74,7 +88,7 @@ const char *COMMAND_FORMAT[] = {
  */
 const char *COMMAND_DESCRIPTION[] = {
     "缺省命令名时输出所有的命令及其说明，否则输出指定命令的说明",
-    "p代表plain（普通输出），t代表tree（树形输出），缺省时使用plain格式；缺省路径名时列出当前目录下的普通文件和目录",
+    "缺省路径名时列出当前目录下的普通文件和目录，否则列出指定目录下的普通文件和目录",
     "显示<filename>的内容",
     "递归地显示指定目录及其所有子目录下的普通文件数和目录数",
     "退出程序"
