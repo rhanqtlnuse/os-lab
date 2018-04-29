@@ -76,8 +76,8 @@ const char *COMMAND_NAME[] = {
  * 命令格式
  */
 const char *COMMAND_FORMAT[] = {
-    "help[ command]",
-    "ls[ path]",
+    "help [command]",
+    "ls [path]",
     "cat <filename>",
     "count <path>",
     "exit"
@@ -88,7 +88,7 @@ const char *COMMAND_FORMAT[] = {
  */
 const char *COMMAND_DESCRIPTION[] = {
     "缺省命令名时输出所有的命令及其说明，否则输出指定命令的说明",
-    "缺省路径名时列出当前目录下的普通文件和目录，否则列出指定目录下的普通文件和目录",
+    "缺省路径名时列出根目录下的普通文件和目录，否则列出指定目录下的普通文件和目录",
     "显示<filename>的内容",
     "递归地显示指定目录及其所有子目录下的普通文件数和目录数",
     "退出程序"
@@ -98,6 +98,24 @@ const char *COMMAND_DESCRIPTION[] = {
  * 输入暂存区大小
  */
 const int BUF_SIZE = 4095;
+
+const int FAT1_BEGIN = 0x200;
+
+/**
+ * 根分区起始地址
+ */
+const int ROOT_DIR_BEGIN = 0x2600;
+
+const int DATA_BEGIN = 0x4200;
+
+enum color {
+    DEFAULT_COLOR,
+    ORDINARY_COLOR,
+    DIRECTORY_COLOR,
+    DEBUG_COLOR
+};
+
+void my_print(long color, char *format, ...);
 
 /**
  * 处理输入，是功能调用的入口函数
@@ -114,13 +132,37 @@ void process_input(char *buffer);
  */
 bool read_command(char *buffer);
 
+void read_ordinary_name(FILE *fp, char *name);
+void read_directory_name(FILE *fp, char *name);
+int read_fat_entry(FILE *fp, int next);
+
+/**
+ * 队列
+ */
+#define QUEUE_SIZE 256
+
+int address_queue[QUEUE_SIZE];
+int address_head = 0;
+int address_tail = -1;
+
+char *path_queue[QUEUE_SIZE];
+int path_head = 0;
+int path_tail = -1;
+
+void enqueue_address(int v);
+int dequeue_address();
+void enqueue_path(char *path);
+char * dequeue_path();
+bool empty();
+
+void clear_on_finish();
+
 int main(int argc, const char *argv[]) {
-    printf("OS_Lab_2: FAT12 Image Viewer\n\n");
-    printf("如果您第一次使用这个程序，输入\"help\"以查看帮助；如果您忘记了某条命令的用法，输入\"help <command>\"以查看其说明。\n\n");
-    
+    my_print(0, "OS_Lab_2: FAT12 Image Viewer\n\n");
+
     char buffer[BUF_SIZE];
     while (true) {
-        printf("> ");
+        my_print(0, "> ");
         if (!read_command(buffer)) {
             process_input(buffer);
         }
@@ -149,14 +191,159 @@ void my_help(const param_list *list) {
         }
     }
 }
+
+/**
+ * 层序遍历
+ * 
+ * 1. 遇到目录
+ *   1.1 输出名字
+ *   1.2 读取其对应的开始簇号
+ *   1.3 根据簇号找到其FAT项
+ *     1.3.1 如果FAT项大于等于0xFF8，则继续搜索当前目录
+ *     1.3.2 如果FAT项指明某个簇、则从该簇开始重复整个过程（注意非根目录的前两项是“.”和“..”）
+ * 2. 遇到普通文件
+ *   2.1 输出名字
+ *   2.2 继续下一项
+ */
 void my_ls(const param_list *list) {
-    printf("ls\n");
+    FILE *img = fopen("a.img", "rb");
+    char entryname[14];
+    if (list->params[0] == NULL) {
+        my_print(DEFAULT_COLOR, "/: \n");
+        int k;
+        for (k = ROOT_DIR_BEGIN; k < DATA_BEGIN; k += 0x20) {
+            fseek(img, k + 0x0B, 0);
+            int attribute = fgetc(img);
+            if (attribute == 0x10) {
+                fseek(img, k, 0);
+                read_directory_name(img, entryname);
+                my_print(DIRECTORY_COLOR, entryname);
+                my_print(DEFAULT_COLOR, " ");
+                fseek(img, k + 0x1A, 0);
+                int firstCluster = fgetc(img) + (fgetc(img) << 8);
+                enqueue_address(firstCluster);
+                char *tmp = (char *) malloc(11);
+                tmp[0] = '/';
+                strcat(tmp, entryname);
+                strcat(tmp, "/");
+                enqueue_path(tmp);
+            } else if (attribute == 0x20) {
+                fseek(img, k, 0);
+                read_ordinary_name(img, entryname);
+                my_print(ORDINARY_COLOR, entryname);
+                my_print(DEFAULT_COLOR, " ");
+            } else {
+                break;
+            }
+        }
+        my_print(DEFAULT_COLOR, "\n\n");
+        while (!empty()) {
+            if (address_queue[address_head] < 0xFF8) {
+                bool empty = true;
+                my_print(DEFAULT_COLOR, path_queue[path_head]);
+                my_print(DEFAULT_COLOR, ": \n");
+                long offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200 + 2 * 0x20;
+                int i;
+                for (i = 0; i < 0x1c0; i += 0x20) {
+                    fseek(img, offset + i + 0x0B, 0);
+                    int attribute = fgetc(img);
+                    if (attribute == 0x10) {
+                        fseek(img, offset + i, 0);
+                        read_directory_name(img, entryname);
+                        my_print(DIRECTORY_COLOR, entryname);
+                        empty = false;
+                        my_print(DEFAULT_COLOR, " ");
+                        fseek(img, offset + i + 0x1A, 0);
+                        int firstCluster = fgetc(img) + (fgetc(img) << 8);
+                        enqueue_address(firstCluster);
+                        char tmp[255] = {'\0'};
+                        strcat(tmp, path_queue[path_head]);
+                        strcat(tmp, entryname);
+                        strcat(tmp, "/");
+                        enqueue_path(tmp);
+                    } else if (attribute == 0x20) {
+                        fseek(img, offset + i, 0);
+                        read_ordinary_name(img, entryname);
+                        my_print(ORDINARY_COLOR, entryname);
+                        my_print(DEFAULT_COLOR, " ");
+                        empty = false;
+                    } else {
+                        break;
+                    }
+                }
+                if (!empty) {
+                    my_print(DEFAULT_COLOR, "\n");
+                }
+                my_print(DEFAULT_COLOR, "\n");
+                address_queue[address_head] = read_fat_entry(img, address_queue[address_head]);
+            } else {
+                dequeue_address();
+                dequeue_path();
+            }
+        }
+    } else {
+        char *tmp = strtok(list->params[0], "/");
+        int i;
+        for (i = ROOT_DIR_BEGIN; i < DATA_BEGIN; i += 0x20) {
+            fseek(img, i + 0x0B, 0);
+            int attribute = fgetc(img);
+            if (attribute == 0x10) {
+                fseek(img, i, 0);
+                read_directory_name(img, entryname);
+                if (strcmp(entryname, tmp) == 0) {
+                    my_print(DEFAULT_COLOR, "/");
+                    my_print(DEFAULT_COLOR, entryname);
+                    my_print(DEFAULT_COLOR, "/: \n");
+                    fseek(img, i + 0x1A, 0);
+                    int firstCluster = fgetc(img) + (fgetc(img) << 8);
+                    fseek(img, DATA_BEGIN + (firstCluster - 2) * 0x200 + 2 * 0x20, 0);
+                    int j = 0;
+                    while (true) {
+                        fseek(img, j + 0x0B, 1);
+                        attribute = fgetc(img);
+                        if (attribute == 0x10) {
+                            fseek(img, -12, 1);
+                            read_directory_name(img, entryname);
+                            my_print(ORDINARY_COLOR, entryname);
+                            my_print(DEFAULT_COLOR, " ");
+                        } else if (attribute == 0x20) {
+                            fseek(img, -12, 1);
+                            read_ordinary_name(img, entryname);
+                            my_print(ORDINARY_COLOR, entryname);
+                            my_print(DEFAULT_COLOR, " ");
+                        } else {
+                            break;
+                        }
+                        fseek(img, DATA_BEGIN + (firstCluster - 2) * 0x200 + 2 * 0x20 + j, 0);
+                        j += 0x20;
+                    }
+                    my_print(DEFAULT_COLOR, "\n");
+                    clear_on_finish();
+                    return;
+                }
+            } else if (attribute == 0x20) {
+                fseek(img, i, 0);
+                read_ordinary_name(img, entryname);
+                if (strcmp(entryname, tmp) == 0) {
+                    my_print(DEFAULT_COLOR, tmp);
+                    my_print(DEFAULT_COLOR, ": 不是一个目录\n");
+                    clear_on_finish();
+                    return;
+                }
+            } else {
+                my_print(DEFAULT_COLOR, tmp);
+                my_print(DEFAULT_COLOR, ": 路径不存在\n");
+                clear_on_finish();
+                return;
+            }
+        }
+    }
 }
 void my_cat(const param_list *list) {
-    printf("cat\n");
+    my_print(DEFAULT_COLOR, "cat\n");
 }
 void my_count(const param_list *list) {
-    printf("count\n");
+    my_print(DEFAULT_COLOR, "count\n");
 }
 void my_exit(const param_list *list) {
     exit(0);
@@ -190,10 +377,10 @@ void process_input(char *buffer) {
             list->params[counter++] = param;
         }
         /********* for debug **********/
-        printf("count: %d\n", counter);
-        for (int k = 0; k < counter; k++) {
-            printf("[%s]\n", list->params[k]);
-        }
+        // printf("count: %d\n", counter);
+        // for (int k = 0; k < counter; k++) {
+        //     printf("[%s]\n", list->params[k]);
+        // }
         /********* for debug **********/
         COMMAND_ENTRY[i](list);
     } else {
@@ -249,4 +436,93 @@ bool read_command(char *buffer) {
     buffer[i] = '\0';
 
     return empty_cmd;
+}
+
+void read_ordinary_name(FILE *fp, char *name) {
+    int i;
+    int j;
+    int byte;
+    for (i = 0, j = 0; i < 8 && (byte = fgetc(fp)) != 0x20; i++, j++) {
+        name[j] = (char) byte;
+    }
+    name[j++] = '.';
+    // 略过空格，7的原因是第一个空格已经被读取过，现在指向第二个空格
+    for (; i < 7; i++) {
+        fgetc(fp);
+    }
+    for (; i < 10 && (byte = fgetc(fp)) != 0x20; i++, j++) {
+        name[j] = (char) byte;
+    }
+    name[j] = '\0';
+}
+
+void read_directory_name(FILE *fp, char *name) {
+    int i;
+    int byte;
+    for (i = 0; i < 8 && (byte = fgetc(fp)) != 0x20; i++) {
+        name[i] = (char) byte;
+    }
+    name[i] = '\0';
+}
+int read_fat_entry(FILE *fp, int next) {
+    int offset;
+    if (next % 2 == 1) {
+        offset = (next - 1) * 3 / 2;
+    } else {
+        offset = next * 3 / 2;
+    }
+    fseek(fp, FAT1_BEGIN + offset, 0);
+    int fatBits = fgetc(fp) + (fgetc(fp) << 8) + (fgetc(fp) << 16);
+    if (next % 2 == 1) {
+        int mask = 0xFFF000;
+        fatBits = fatBits & mask;
+        fatBits = fatBits >> 12;
+    } else {
+        int mask = 0x000FFF;
+        fatBits = fatBits & mask;
+    }
+    return fatBits;
+}
+
+void enqueue_address(int v) {
+    if (address_tail == QUEUE_SIZE - 1) {
+        printf("error: address_queue is full\n");
+        exit(-1);
+    }
+    address_queue[++address_tail] = v;
+}
+int dequeue_address() {
+    if (address_tail < address_head) {
+        printf("error: address_queue is empty\n");
+        exit(-1);
+    }
+    return address_queue[address_head++];
+}
+
+void enqueue_path(char *path) {
+    if (path_tail == QUEUE_SIZE - 1) {
+        printf("error: path_queue is full\n");
+        exit(-1);
+    }
+    path_queue[++path_tail] = path;
+}
+char * dequeue_path() {
+    if (path_tail < path_head) {
+        printf("error: path_queue is empty\n");
+        exit(-1);
+    }
+    return path_queue[path_head++];
+}
+bool empty() {
+    return address_head - address_tail == 1;
+}
+
+void clear_on_finish() {
+    for (int i = 0; i <= path_tail; i++) {
+        free(path_queue[i]);
+    }
+    address_head = 0;
+    address_tail = -1;
+    path_head = 0;
+    path_tail = -1;
 }

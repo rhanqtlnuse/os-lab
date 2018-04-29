@@ -4,6 +4,7 @@
 ; 3. 假定不会出现错误且只有一个参数
         global  my_print
         section .text
+
 my_print:
         ; 设置颜色
         call    setColor
@@ -127,6 +128,8 @@ setColor:
         je      setOrdinary
         cmp     rdi, 2
         je      setDirectory
+        cmp     rdi, 3
+        je      setDebug
 setDefault:
         mov     rcx, COLOR_DEFAULT
         mov     rdx, COLOR_DEFAULT.len
@@ -140,6 +143,11 @@ setOrdinary:
 setDirectory:
         mov     rcx, COLOR_DIRECTORY
         mov     rdx, COLOR_DIRECTORY.len
+        int     80h
+        jmp     endSetColor
+setDebug:
+        mov     rcx, COLOR_DEBUG
+        mov     rdx, COLOR_DEBUG.len
         int     80h
         jmp     endSetColor
 endSetColor:
@@ -163,6 +171,10 @@ COLOR_ORDINARY:
 COLOR_DIRECTORY:
         db      1Bh, '[34;1m', 0
 .len    equ     $ - COLOR_DIRECTORY
+COLOR_DEBUG:
+        db      1Bh, '[33;1m', 0
+.len    equ     $ - COLOR_DEBUG
 
+DEFAULT REL
         section .bss
 strnum  resb    64

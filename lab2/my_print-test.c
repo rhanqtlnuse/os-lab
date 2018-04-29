@@ -7,7 +7,7 @@ int main(int argc, const char *argv[]) {
     printf("abc\n");
     my_print(1, "", 1, 1.5);
     printf("def\n");
-    my_print(2, "g h i %d\n", 12);
+    my_print(2, "%d\n", 12);
     printf("ghi\n");
 
     return 0;
