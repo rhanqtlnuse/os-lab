@@ -1,0 +1,8 @@
+test/
+a.img
+main
+main.o
+my_print.o
+my_print-test
+my_print-test.c
+
