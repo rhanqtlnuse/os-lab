@@ -302,7 +302,8 @@ void my_ls(const param_list *list) {
         }
     } else {
         int cluster = 0;
-        char pathname[4096] = {'/', '\0'};
+        char *pathname = (char *) malloc(4096);
+        strcpy(pathname, "/\0");
         char *tmp = strtok(list->params[0], "/");
         // 对根目录进行搜索
         for (int i = ROOT_DIR_BEGIN; i < DATA_BEGIN; i += 0x20) {
@@ -386,8 +387,72 @@ void my_ls(const param_list *list) {
         }
         printf("[数据区:%#x]\n", cluster);
         printf("[%s]\n", pathname);
+        enqueue_address(cluster);
+        enqueue_path(pathname);
         // 开始进行遍历
-
+        bool emptyCluster = false;
+        continued = false;
+        while (!empty()) {
+            if (address_queue[address_head] < 0xFF8) {
+                emptyCluster = true;
+                long offset;
+                if (continued) {
+                    offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200;
+                } else {
+                    offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200 + 2 * 0x20;
+                    my_print(DEFAULT_COLOR, path_queue[path_head]);
+                    my_print(DEFAULT_COLOR, ": \n");
+                }
+                int i;
+                int upper;
+                if (continued) {
+                    upper = 0x200;
+                } else {
+                    upper = 0x1c0;
+                }
+                for (i = 0; i < upper; i += 0x20) {
+                    fseek(img, offset + i + 0x0B, 0);
+                    int attribute = fgetc(img);
+                    if (attribute == 0x10) {
+                        fseek(img, offset + i, 0);
+                        read_directory_name(img, entryname);
+                        my_print(DIRECTORY_COLOR, entryname);
+                        emptyCluster = false;
+                        my_print(DEFAULT_COLOR, " ");
+                        fseek(img, offset + i + 0x1A, 0);
+                        int firstCluster = fgetc(img) + (fgetc(img) << 8);
+                        enqueue_address(firstCluster);
+                        char *tmp = (char *) malloc(255);
+                        strcat(tmp, path_queue[path_head]);
+                        strcat(tmp, entryname);
+                        strcat(tmp, "/");
+                        enqueue_path(tmp);
+                    } else if (attribute == 0x20) {
+                        fseek(img, offset + i, 0);
+                        read_ordinary_name(img, entryname);
+                        my_print(ORDINARY_COLOR, entryname);
+                        my_print(DEFAULT_COLOR, " ");
+                        emptyCluster = false;
+                    } else {
+                        break;
+                    }
+                }
+                if (i >= upper) {
+                    continued = true;
+                } else {
+                    continued = false;
+                }
+                address_queue[address_head] = read_fat_entry(img, address_queue[address_head]);
+            } else {
+                my_print(DEFAULT_COLOR, "\n");
+                if (!emptyCluster) {
+                    my_print(DEFAULT_COLOR, "\n");
+                }
+                dequeue_address();
+                dequeue_path();
+                continued = false;
+            }
+        }
     }
 }
 void my_cat(const param_list *list) {
