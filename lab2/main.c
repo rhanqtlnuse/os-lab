@@ -359,7 +359,6 @@ void my_ls(const param_list *list) {
                         cluster = fgetc(img) + (fgetc(img) << 8);
                         strcat(pathname, tmp);
                         strcat(pathname, "/");
-                        found = true;
                         break;
                     }
                 } else if (attribute == 0x20) {
@@ -378,9 +377,6 @@ void my_ls(const param_list *list) {
                     return;
                 }
             }
-            if (found) {
-                break;
-            }
             if (i >= 0x200) {
                 cluster = read_fat_entry(img, cluster);
                 continued = true;
@@ -391,7 +387,7 @@ void my_ls(const param_list *list) {
         printf("[数据区:%#x]\n", cluster);
         printf("[%s]\n", pathname);
         // 开始进行遍历
-        
+
     }
 }
 void my_cat(const param_list *list) {
