@@ -237,26 +237,39 @@ void my_ls(const param_list *list) {
             }
         }
         my_print(DEFAULT_COLOR, "\n\n");
+        bool continued = false;
+        bool emptyCluster = true;
         while (!empty()) {
             if (address_queue[address_head] < 0xFF8) {
-                bool empty = true;
-                my_print(DEFAULT_COLOR, path_queue[path_head]);
-                my_print(DEFAULT_COLOR, ": \n");
-                long offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200 + 2 * 0x20;
+                emptyCluster = true;
+                long offset;
+                if (continued) {
+                    offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200;
+                } else {
+                    offset = DATA_BEGIN + (address_queue[address_head] - 2) * 0x200 + 2 * 0x20;
+                    my_print(DEFAULT_COLOR, path_queue[path_head]);
+                    my_print(DEFAULT_COLOR, ": \n");
+                }
                 int i;
-                for (i = 0; i < 0x1c0; i += 0x20) {
+                int upper;
+                if (continued) {
+                    upper = 0x200;
+                } else {
+                    upper = 0x1c0;
+                }
+                for (i = 0; i < upper; i += 0x20) {
                     fseek(img, offset + i + 0x0B, 0);
                     int attribute = fgetc(img);
                     if (attribute == 0x10) {
                         fseek(img, offset + i, 0);
                         read_directory_name(img, entryname);
                         my_print(DIRECTORY_COLOR, entryname);
-                        empty = false;
+                        emptyCluster = false;
                         my_print(DEFAULT_COLOR, " ");
                         fseek(img, offset + i + 0x1A, 0);
                         int firstCluster = fgetc(img) + (fgetc(img) << 8);
                         enqueue_address(firstCluster);
-                        char tmp[255] = {'\0'};
+                        char *tmp = (char *) malloc(255);
                         strcat(tmp, path_queue[path_head]);
                         strcat(tmp, entryname);
                         strcat(tmp, "/");
@@ -266,58 +279,69 @@ void my_ls(const param_list *list) {
                         read_ordinary_name(img, entryname);
                         my_print(ORDINARY_COLOR, entryname);
                         my_print(DEFAULT_COLOR, " ");
-                        empty = false;
+                        emptyCluster = false;
                     } else {
                         break;
                     }
                 }
-                if (!empty) {
-                    my_print(DEFAULT_COLOR, "\n");
+                if (i >= upper) {
+                    continued = true;
+                } else {
+                    continued = false;
                 }
-                my_print(DEFAULT_COLOR, "\n");
                 address_queue[address_head] = read_fat_entry(img, address_queue[address_head]);
             } else {
+                my_print(DEFAULT_COLOR, "\n");
+                if (!emptyCluster) {
+                    my_print(DEFAULT_COLOR, "\n");
+                }
                 dequeue_address();
                 dequeue_path();
+                continued = false;
             }
         }
     } else {
+        int cluster = 0;
+        char pathname[4096] = {'/', '\0'};
         char *tmp = strtok(list->params[0], "/");
-        int i;
-        for (i = ROOT_DIR_BEGIN; i < DATA_BEGIN; i += 0x20) {
+        for (int i = ROOT_DIR_BEGIN; i < DATA_BEGIN; i += 0x20) {
             fseek(img, i + 0x0B, 0);
             int attribute = fgetc(img);
             if (attribute == 0x10) {
                 fseek(img, i, 0);
                 read_directory_name(img, entryname);
                 if (strcmp(entryname, tmp) == 0) {
-                    my_print(DEFAULT_COLOR, "/");
-                    my_print(DEFAULT_COLOR, entryname);
-                    my_print(DEFAULT_COLOR, "/: \n");
                     fseek(img, i + 0x1A, 0);
-                    int firstCluster = fgetc(img) + (fgetc(img) << 8);
-                    fseek(img, DATA_BEGIN + (firstCluster - 2) * 0x200 + 2 * 0x20, 0);
-                    int j = 0;
-                    while (true) {
-                        fseek(img, j + 0x0B, 1);
-                        attribute = fgetc(img);
-                        if (attribute == 0x10) {
-                            fseek(img, -12, 1);
-                            read_directory_name(img, entryname);
-                            my_print(ORDINARY_COLOR, entryname);
-                            my_print(DEFAULT_COLOR, " ");
-                        } else if (attribute == 0x20) {
-                            fseek(img, -12, 1);
-                            read_ordinary_name(img, entryname);
-                            my_print(ORDINARY_COLOR, entryname);
-                            my_print(DEFAULT_COLOR, " ");
-                        } else {
-                            break;
-                        }
-                        fseek(img, DATA_BEGIN + (firstCluster - 2) * 0x200 + 2 * 0x20 + j, 0);
-                        j += 0x20;
-                    }
-                    my_print(DEFAULT_COLOR, "\n");
+                    cluster = fgetc(img) + (fgetc(img) << 8);
+                    strcat(pathname, tmp);
+                    strcat(pathname, "/");
+                    break;
+                }
+            } else if (attribute == 0x20) {
+                fseek(img, i, 0);
+                read_ordinary_name(img, entryname);
+                if (strcmp(entryname, tmp) == 0) {
+                    my_print(DEFAULT_COLOR, tmp);
+                    my_print(DEFAULT_COLOR, ": 不是一个目录\n");
+                    clear_on_finish();
+                    return;
+                }
+            } else {
+                my_print(DEFAULT_COLOR, tmp);
+                my_print(DEFAULT_COLOR, ": 路径不存在\n");
+                clear_on_finish();
+                return;
+            }
+        }
+        int i;
+        while ((tmp = strtok(NULL, "/")) != NULL) {
+            fseek(img, i + 0x0B, 0);
+            int attribute = fgetc(img);
+            if (attribute == 0x10) {
+                fseek(img, i, 0);
+                read_directory_name(img, entryname);
+                if (strcmp(entryname, tmp) == 0) {
+                    
                     clear_on_finish();
                     return;
                 }
