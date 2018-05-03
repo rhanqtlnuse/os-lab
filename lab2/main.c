@@ -304,6 +304,7 @@ void my_ls(const param_list *list) {
         int cluster = 0;
         char pathname[4096] = {'/', '\0'};
         char *tmp = strtok(list->params[0], "/");
+        // 对根目录进行搜索
         for (int i = ROOT_DIR_BEGIN; i < DATA_BEGIN; i += 0x20) {
             fseek(img, i + 0x0B, 0);
             int attribute = fgetc(img);
@@ -333,34 +334,64 @@ void my_ls(const param_list *list) {
                 return;
             }
         }
-        int i;
-        while ((tmp = strtok(NULL, "/")) != NULL) {
-            fseek(img, i + 0x0B, 0);
-            int attribute = fgetc(img);
-            if (attribute == 0x10) {
-                fseek(img, i, 0);
-                read_directory_name(img, entryname);
-                if (strcmp(entryname, tmp) == 0) {
-                    
-                    clear_on_finish();
-                    return;
+        printf("[根目录:%#x]\n", cluster);
+        int offset;
+        bool continued = false;
+        bool found = false;
+        while (true) {
+            if (!continued) {
+                tmp = strtok(NULL, "/");
+                if (tmp == NULL) {
+                    break;
                 }
-            } else if (attribute == 0x20) {
-                fseek(img, i, 0);
-                read_ordinary_name(img, entryname);
-                if (strcmp(entryname, tmp) == 0) {
+            }
+            printf("[tmp:%s]\n", tmp);
+            offset = DATA_BEGIN + (cluster - 2) * 0x200;
+            int i;
+            for (i = 0; i < 0x200; i += 0x20) {
+                fseek(img, offset + i + 0x0B, 0);
+                int attribute = fgetc(img);
+                if (attribute == 0x10) {
+                    fseek(img, offset + i, 0);
+                    read_directory_name(img, entryname);
+                    if (strcmp(entryname, tmp) == 0) {
+                        fseek(img, offset + i + 0x1A, 0);
+                        cluster = fgetc(img) + (fgetc(img) << 8);
+                        strcat(pathname, tmp);
+                        strcat(pathname, "/");
+                        found = true;
+                        break;
+                    }
+                } else if (attribute == 0x20) {
+                    fseek(img, offset + i, 0);
+                    read_ordinary_name(img, entryname);
+                    if (strcmp(entryname, tmp) == 0) {
+                        my_print(DEFAULT_COLOR, tmp);
+                        my_print(DEFAULT_COLOR, ": 不是一个目录\n");
+                        clear_on_finish();
+                        return;
+                    }
+                } else {
                     my_print(DEFAULT_COLOR, tmp);
-                    my_print(DEFAULT_COLOR, ": 不是一个目录\n");
+                    my_print(DEFAULT_COLOR, ": 路径不存在\n");
                     clear_on_finish();
                     return;
                 }
+            }
+            if (found) {
+                break;
+            }
+            if (i >= 0x200) {
+                cluster = read_fat_entry(img, cluster);
+                continued = true;
             } else {
-                my_print(DEFAULT_COLOR, tmp);
-                my_print(DEFAULT_COLOR, ": 路径不存在\n");
-                clear_on_finish();
-                return;
+                continued = false;
             }
         }
+        printf("[数据区:%#x]\n", cluster);
+        printf("[%s]\n", pathname);
+        // 开始进行遍历
+        
     }
 }
 void my_cat(const param_list *list) {
