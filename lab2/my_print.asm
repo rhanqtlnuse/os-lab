@@ -137,6 +137,8 @@ setColor:
         je      setDirectory
         cmp     rdi, 3
         je      setDebug
+        cmp     rdi, 4
+        je      setError
 setDefault:
         mov     rcx, COLOR_DEFAULT
         mov     rdx, COLOR_DEFAULT.len
@@ -155,6 +157,11 @@ setDirectory:
 setDebug:
         mov     rcx, COLOR_DEBUG
         mov     rdx, COLOR_DEBUG.len
+        int     80h
+        jmp     endSetColor
+setError:
+        mov     rcx, COLOR_ERROR
+        mov     rdx, COLOR_ERROR.len
         int     80h
         jmp     endSetColor
 endSetColor:
@@ -181,7 +188,9 @@ COLOR_DIRECTORY:
 COLOR_DEBUG:
         db      1Bh, '[33;1m', 0
 .len    equ     $ - COLOR_DEBUG
-
+COLOR_ERROR:
+        db      1Bh, '[31;1m', 0
+.len    equ     $ - COLOR_ERROR
 DEFAULT REL
         section .bss
 strnum  resb    64

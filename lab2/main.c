@@ -112,7 +112,8 @@ enum color {
     DEFAULT_COLOR,
     ORDINARY_COLOR,
     DIRECTORY_COLOR,
-    DEBUG_COLOR
+    DEBUG_COLOR,
+    ERROR_COLOR
 };
 
 void my_print(long color, char *format, ...);
@@ -471,9 +472,9 @@ void my_cat(const param_list *list) {
 void my_count(const param_list *list) {
     FILE *img = fopen("a.img", "rb");
     char entryname[14];
-    my_print(DEFAULT_COLOR, "count\n");
     if (list->params[0] == NULL) {
-        my_print(DEFAULT_COLOR, "Error: 请输入路径\n");
+        my_print(ERROR_COLOR, "Error: ");
+        my_print(DEFAULT_COLOR, "请输入路径\n");
         return;
     }
     int cluster = 0;
@@ -498,12 +499,14 @@ void my_count(const param_list *list) {
             fseek(img, i, 0);
             read_ordinary_name(img, entryname);
             if (strcmp(entryname, tmp) == 0) {
+                my_print(ERROR_COLOR, "Error: ");
                 my_print(DEFAULT_COLOR, tmp);
                 my_print(DEFAULT_COLOR, ": 不是一个目录\n");
                 clear_on_finish();
                 return;
             }
         } else {
+            my_print(ERROR_COLOR, "Error: ");
             my_print(DEFAULT_COLOR, tmp);
             my_print(DEFAULT_COLOR, ": 路径不存在\n");
             clear_on_finish();
@@ -539,12 +542,14 @@ void my_count(const param_list *list) {
                 fseek(img, offset + i, 0);
                 read_ordinary_name(img, entryname);
                 if (strcmp(entryname, tmp) == 0) {
+                    my_print(ERROR_COLOR, "Error: ");
                     my_print(DEFAULT_COLOR, tmp);
                     my_print(DEFAULT_COLOR, ": 不是一个目录\n");
                     clear_on_finish();
                     return;
                 }
             } else {
+                my_print(ERROR_COLOR, "Error: ");
                 my_print(DEFAULT_COLOR, tmp);
                 my_print(DEFAULT_COLOR, ": 路径不存在\n");
                 clear_on_finish();
@@ -600,8 +605,6 @@ void my_count(const param_list *list) {
                     break;
                 }
             }
-            my_print(DEFAULT_COLOR, "[filecount:%d] ", fileCount);
-            my_print(DEFAULT_COLOR, "[dircount:%d]\n", dirCount);
             if (i >= upper) {
                 continued = true;
             } else {
@@ -612,7 +615,20 @@ void my_count(const param_list *list) {
             for (int i = 0; i < level; i++) {
                 my_print(DEFAULT_COLOR, "  ");
             }
-            my_print(DEFAULT_COLOR, path_queue[path_head]);
+            char *name = (char *) malloc(9);
+            strcpy(name, path_queue[path_head]);
+            int length = strlen(name);
+            for (int i = length - 1; i >= 0; i--) {
+                if (name[i] == '/') {
+                    if (i == length - 1) {
+                        name[i] = '\0';
+                    } else {
+                        name += (i + 1);
+                        break;
+                    }
+                }
+            }
+            my_print(DEFAULT_COLOR, name);
             my_print(DEFAULT_COLOR, ": %d file(s)", fileCount);
             my_print(DEFAULT_COLOR, ", %d dir(s)\n", dirCount);
             dequeue_address();
@@ -620,10 +636,12 @@ void my_count(const param_list *list) {
             level++;
             dirCount = 0;
             fileCount = 0;
+            continued = false;
         }
     }
 }
 void my_exit(const param_list *list) {
+    my_print(DEFAULT_COLOR, "Goodbye!\n");
     exit(0);
 }
 
