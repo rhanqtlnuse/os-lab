@@ -8,6 +8,13 @@
 my_print:
         ; 设置颜色
         call    setColor
+        
+        mov     rcx, 63
+init:
+        mov     byte[strnum + rcx], 0
+        dec     rcx
+        cmp     rcx, 0
+        jge     init
 
         ; 处理格式化串
         ; rcx作为指针
