@@ -867,11 +867,17 @@ void read_ordinary_name(FILE *fp, char *name) {
     }
     name[j++] = '.';
     // 略过空格，7的原因是第一个空格已经被读取过，现在指向第二个空格
-    for (; i < 7; i++) {
-        fgetc(fp);
-    }
-    for (; i < 10 && (byte = fgetc(fp)) != 0x20; i++, j++) {
-        name[j] = (char) byte;
+    if (i < 8) {
+        for (; i < 7; i++) {
+            fgetc(fp);
+        }
+        for (; i < 10 && (byte = fgetc(fp)) != 0x20; i++, j++) {
+            name[j] = (char) byte;
+        }
+    } else {
+        for (; i < 11 && (byte = fgetc(fp)) != 0x20; i++, j++) {
+            name[j] = (char) byte;
+        }
     }
     name[j] = '\0';
 }
