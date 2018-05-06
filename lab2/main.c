@@ -209,7 +209,7 @@ void my_help(const param_list *list) {
 void my_ls(const param_list *list) {
     FILE *img = fopen("a.img", "rb");
     char entryname[14];
-    if (list->params[0] == NULL) {
+    if (list->params[0] == NULL || strcmp(list->params[0], "/") == 0) {
         my_print(DEFAULT_COLOR, "/: \n");
         int k;
         for (k = ROOT_DIR_BEGIN; k < DATA_BEGIN; k += 0x20) {
@@ -690,7 +690,19 @@ void my_count(const param_list *list) {
     enqueue_address(cluster);
     enqueue_path(pathname);
     // 开始遍历
-    int level = 0;
+    typedef struct _entry {
+        char name[9];
+        int filecount;
+        int dircount;
+    } dir_entry;
+    dir_entry *entries[16];
+    int tail = -1;
+    for (int i = 0; i < 16; i++) {
+        entries[i] = (dir_entry *) malloc(sizeof(dir_entry));
+        strcpy(entries[i]->name, "\0");
+        entries[i]->filecount = 0;
+        entries[i]->dircount = 0;
+    }
     int fileCount = 0;
     int dirCount = 0;
     continued = false;
@@ -736,9 +748,6 @@ void my_count(const param_list *list) {
             }
             address_queue[address_head] = read_fat_entry(img, address_queue[address_head]);
         } else {
-            for (int i = 0; i < level; i++) {
-                my_print(DEFAULT_COLOR, "  ");
-            }
             char *name = (char *) malloc(9);
             strcpy(name, path_queue[path_head]);
             int length = strlen(name);
@@ -752,16 +761,31 @@ void my_count(const param_list *list) {
                     }
                 }
             }
-            my_print(DEFAULT_COLOR, name);
-            my_print(DEFAULT_COLOR, ": %d file(s)", fileCount);
-            my_print(DEFAULT_COLOR, ", %d dir(s)\n", dirCount);
+            dir_entry *e = (dir_entry *) malloc(sizeof(dir_entry));
+            strcpy(e->name, name);
+            e->filecount = fileCount;
+            e->dircount = dirCount;
+            entries[++tail] = e;
             dequeue_address();
             dequeue_path();
-            level++;
             dirCount = 0;
             fileCount = 0;
             continued = false;
         }
+    }
+    for (int i = 0; i <= tail; i++) {
+        int fc = entries[i]->filecount;
+        int dc = entries[i]->dircount;
+        for (int j = i + 1; j <= tail; j++) {
+            fc += entries[j]->filecount;
+            dc += entries[j]->dircount;
+        }
+        for (int j = 0; j < i; j++) {
+            my_print(DEFAULT_COLOR, "  ");
+        }
+        my_print(DEFAULT_COLOR, entries[i]->name);
+        my_print(DEFAULT_COLOR, ": %d file(s)", fc);
+        my_print(DEFAULT_COLOR, ", %d dir(s)\n", dc);
     }
 }
 void my_exit(const param_list *list) {
@@ -796,12 +820,6 @@ void process_input(char *buffer) {
         while (param = strtok(NULL, " ")) {
             list->params[counter++] = param;
         }
-        /********* for debug **********/
-        // printf("count: %d\n", counter);
-        // for (int k = 0; k < counter; k++) {
-        //     printf("[%s]\n", list->params[k]);
-        // }
-        /********* for debug **********/
         COMMAND_ENTRY[i](list);
     } else {
         printf("Error: %s: command not found\n", cmd);
