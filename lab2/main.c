@@ -3,19 +3,6 @@
  *   1. 实现指定输出格式（比如-p普通输出格式、-t树形输出格式）
  *   2. 实现cd、mkdir、rm、touch等在Linux中常用的命令
  */
-//  输出格式：
-//  ┣━ house
-//  ┃  ┣━ room
-//  ┃  ┃  ┣━ kitchen
-//  ┃  ┃  ┃  ┗━ path.txt
-//  ┃  ┃  ┗━ bed.txt
-//  ┃  ┣━ table.txt
-//  ┃  ┗━ chair.txt
-//  ┣━ animal
-//  ┃  ┣━ bird
-//  ┃  ┗━ cat.txt
-//  ┣━ river.txt
-//  ┗━ mountain.txt
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -173,24 +160,7 @@ int main(int argc, const char *argv[]) {
 }
 
 void my_help(const param_list *list) {
-    if (list->params[0] != NULL) {
-        int i;
-        for (i = 0; i < COMMAND_COUNT && strcmp(list->params[0], COMMAND_NAME[i]) != 0; i++)
-            ;
-        if (i < COMMAND_COUNT) {
-            printf("%s: \n", COMMAND_NAME[i]);
-            printf("  格式: %s\n", COMMAND_FORMAT[i]);
-            printf("  说明: \n    %s\n", COMMAND_DESCRIPTION[i]);
-        } else {
-            printf("Error: %s: command not found\n", list->params[0]);
-        }
-    } else {
-        for (int i = 0; i < COMMAND_COUNT; i++) {
-            printf("%s: \n", COMMAND_NAME[i]);
-            printf("  格式: %s\n", COMMAND_FORMAT[i]);
-            printf("  说明: \n    %s\n", COMMAND_DESCRIPTION[i]);
-        }
-    }
+
 }
 
 /**
@@ -209,7 +179,16 @@ void my_help(const param_list *list) {
 void my_ls(const param_list *list) {
     FILE *img = fopen("a.img", "rb");
     char entryname[14];
-    if (list->params[0] == NULL || strcmp(list->params[0], "/") == 0) {
+    bool slash = true;
+    if (list->params[0] != NULL) {
+        for (int i = 0 ; i < strlen(list->params[0]); i++) {
+            if (list->params[0][i] != '/') {
+                slash = false;
+                break;
+            }
+        }
+    }
+    if (list->params[0] == NULL || slash) {
         my_print(DEFAULT_COLOR, "/: \n");
         int k;
         for (k = ROOT_DIR_BEGIN; k < DATA_BEGIN; k += 0x20) {
@@ -217,6 +196,11 @@ void my_ls(const param_list *list) {
             int attribute = fgetc(img);
             if (attribute == 0x10) {
                 fseek(img, k, 0);
+                if (fgetc(img) == 0xe5) {
+                    continue;
+                } else {
+                    fseek(img, k, 0);
+                }
                 read_directory_name(img, entryname);
                 my_print(DIRECTORY_COLOR, entryname);
                 my_print(DEFAULT_COLOR, " ");
@@ -334,12 +318,6 @@ void my_ls(const param_list *list) {
             } else {
                 my_print(DEFAULT_COLOR, tmp);
                 my_print(DEFAULT_COLOR, ": 路径不存在\n");
-                my_print(DEBUG_COLOR, "[head:%d] ", path_head);
-                my_print(DEBUG_COLOR, "[tail:%d]\n", path_tail);
-                for (int j = 0; j <= path_tail; j++) {
-                    my_print(DEBUG_COLOR, path_queue[j]);
-                    my_print(DEBUG_COLOR, "\n");
-                }
                 clear_on_finish();
                 return;
             }
@@ -503,7 +481,7 @@ void my_cat(const param_list *list) {
             }
         } else {
             my_print(ERROR_COLOR, "Error: ");
-            my_print(DEFAULT_COLOR, tmp);
+            my_print(DEFAULT_COLOR, list->params[0]);
             my_print(DEFAULT_COLOR, ": 路径不存在\n");
             clear_on_finish();
             return;
@@ -572,8 +550,12 @@ void my_cat(const param_list *list) {
             continued = false;
         }
     }
-    printf("[cluster:%#x] ", cluster);
-    printf("[length:%#x]\n", length);
+    if (!fileEncountered) {
+        my_print(ERROR_COLOR, "Error: ");
+        my_print(DEFAULT_COLOR, list->params[0]);
+        my_print(DEFAULT_COLOR, ": 不是一个文件\n");
+        return;
+    }
     // 读取
     char buffer[513] = {'\0'};
     offset = DATA_BEGIN + (cluster - 2) * 0x200;
@@ -822,7 +804,9 @@ void process_input(char *buffer) {
         }
         COMMAND_ENTRY[i](list);
     } else {
-        printf("Error: %s: command not found\n", cmd);
+        my_print(ERROR_COLOR, "Error: ");
+        my_print(DEFAULT_COLOR, cmd);
+        my_print(DEFAULT_COLOR, ": command not found\n");
     }
 }
 
