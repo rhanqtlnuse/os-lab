@@ -107,6 +107,10 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 				if (state == typing) {
 					put_key(p_tty, key);
 					input[current_row][current_col++] = key;
+					if (current_col == COLUMNS) {
+					    current_row++;
+					    current_col = 0;
+					}
 				} else if (state == searching) {
 					pattern[p_pattern++] = key;
                     int tmp = disp_pos;
@@ -135,25 +139,41 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
                             disp_str("done to typing");
                             disp_pos = tmp;
 							reset_search(p_tty);
-							state = typing;
 							enable_irq(CLOCK_IRQ);
 						}
 						break;
 					case TAB:
-					    // TODO
-					    input[current_row][current_col++] = '\t';
-						cursor = p_tty->p_console->cursor;
-						space_cnt = 4 - (cursor % 4);
-						for (int i = 0; i < space_cnt; i++) {
-							put_key(p_tty, ' ');
-						}
+                        if (state != done) {
+                            cursor = p_tty->p_console->cursor;
+                            space_cnt = 4 - (cursor % 4);
+                            if (state == typing) {
+                                for (int i = 0; current_col < COLUMNS && i < space_cnt; i++) {
+                                    input[current_row][current_col++] = '\t';
+                                    put_key(p_tty, ' ');
+                                }
+                                if (current_col == COLUMNS) {
+                                    if (current_row < LINES - 1) {
+                                        current_row++;
+                                        current_col = 0;
+                                    }
+                                }
+                            }
+//                            else if (state == searching) {
+//                                for (int i = 0; p_pattern < PATTERN_SIZE && i < space_cnt; i++) {
+//                                    pattern[p_pattern++] = '\t';
+//                                    put_key(p_tty, ' ');
+//                                }
+//                            }
+                        }
 						break;
 					case ENTER:
 						if (state == typing) {
-							put_key(p_tty, '\n');
-							input[current_row][current_col] = '\n';
-							current_row++;
-							current_col = 0;
+						    if (current_row < LINES - 1) {
+                                put_key(p_tty, '\n');
+                                input[current_row][current_col] = '\n';
+                                current_row++;
+                                current_col = 0;
+                            }
 						} else if (state == searching) {
                             int tmp = disp_pos;
                             disp_pos = 160 * 21;
@@ -165,45 +185,47 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 						}
 						break;
 					case BACKSPACE:
-					    // TODO
 					    if (state == typing) {
-					        if (current_col > 0) {
-                                input[current_row][--current_col] = 0x00;
-                                put_key(p_tty, '\b');
-                            }
+                            if (current_col > 0) {
+                                // TODO
+                                if (input[current_row][current_col-1] == '\t') {
+                                    int max_steps = current_col - current_col / 4 * 4;
+                                    if (max_steps == 0) {
+                                        max_steps = 4;
+                                    }
+                                    for (int i = 0; i < max_steps; i++) {
+                                        if (input[current_row][current_col-1] == '\t') {
+                                            input[current_row][--current_col] = 0x00;
+                                            put_key(p_tty, '\b');
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    input[current_row][--current_col] = 0x00;
+                                    put_key(p_tty, '\b');
+                                }
+                            } else if (current_col == 0) {
+					            if (current_row > 0) {
+					                int i = 0;
+					                while (isAlnumOrTable(input[current_row-1][i])) {
+					                    i++;
+					                }
+					                current_row--;
+					                current_col = COLUMNS - 1;
+					                for (; current_col >= i; current_col--) {
+					                    input[current_row][current_col] = 0x00;
+					                    put_key(p_tty, '\b');
+					                }
+					                current_col++;
+					            }
+					        }
                         } else if (state == searching) {
 					        if (p_pattern > 0) {
                                 pattern[--p_pattern] = 0x00;
                                 put_key(p_tty, '\b');
                             }
 					    }
-						break;
-					case UP:
-					    if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
-					        scroll_screen(p_tty->p_console, SCR_DN);
-					    }
-					    break;
-					case DOWN:
-					    if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
-					        scroll_screen(p_tty->p_console, SCR_UP);
-					    }
-					    break;
-					case F1:
-					case F2:
-					case F3:
-					case F4:
-					case F5:
-					case F6:
-					case F7:
-					case F8:
-					case F9:
-					case F10:
-					case F11:
-					case F12:
-						/* Alt + F1~F12 */
-						if ((key & FLAG_ALT_L) || (key & FLAG_ALT_R)) {
-							select_console(raw_code - F1);
-						}
 						break;
 					default:
 						break;
@@ -259,7 +281,6 @@ int search() {
 	if (strlen(pattern) == 0) {
 		return;
 	}
-
 	disp_pos = 0;
 	for (int i = 0; i <= current_row; i++) {
 		for (int j = 0; j < strlen(input[i]); j++) {
@@ -276,18 +297,6 @@ int search() {
 	}
 
 	state = done;
-}
-
-void reset_search(TTY *p_tty) {
-	for (int i = strlen(pattern) - 1; i >= 0; i--) {
-		pattern[i] = 0x00;
-		put_key(p_tty, '\b');
-	}
-
-	disp_pos = 0;
-	for (int i = 0; i <= current_row; i++) {
-		disp_color_str(input[i], DEFAULT_CHAR_COLOR);
-	}
 }
 
 PRIVATE int strncmp(const char *s1, const char *s2, int len) {
@@ -322,9 +331,44 @@ PUBLIC void clear_screen() {
 	for (TTY *p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
 		init_screen(p_tty);
 	}
-	for (int i = 0; i <= current_row; i++) {
-		for (int j = 0; j < COLUMNS; j++) {
-			input[i][j] = 0x00;
-		}
-	}
+    for (int i = 0; i < LINES; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            input[i][j] = 0x00;
+        }
+    }
+    for (int i = 0; i < PATTERN_SIZE; i++) {
+        pattern[i] = 0x00;
+    }
+    // 默认为输入模式
+    state = typing;
+    p_pattern = 0;
+    current_row = 0;
+    current_col = 0;
+}
+
+void reset_search(TTY *p_tty) {
+    for (int i = strlen(pattern) - 1; i >= 0; i--) {
+        pattern[i] = 0x00;
+        put_key(p_tty, '\b');
+    }
+    disp_pos = 0;
+    for (int i = 0; i <= current_row; i++) {
+        disp_color_str(input[i], DEFAULT_CHAR_COLOR);
+    }
+    state = typing;
+    p_pattern = 0;
+}
+
+int isAlnumOrTable(int ch) {
+    if ('0' <= ch && ch <= '9') {
+        return 1;
+    } else if ('a' <= ch && ch <= 'z') {
+        return 1;
+    } else if ('A' <= ch && ch <= 'Z') {
+        return 1;
+    } else if (ch == '\t') {
+        return 1;
+    } else {
+        return 0;
+    }
 }
