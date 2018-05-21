@@ -41,13 +41,14 @@ int current_row;
 int current_col;
 
 char pattern[PATTERN_SIZE];
-int p_pattern = 0;
+int p_pattern;
 
 PUBLIC void clear_screen();
-PRIVATE int strlen(const char *str);
 PRIVATE int strncmp(const char *s1, const char *s2, int len);
 PRIVATE void reset_search(TTY *p_tty);
+
 int search();
+int strlen(const char *str);
 
 /*======================================================================*
                            task_tty
@@ -90,6 +91,9 @@ PRIVATE void init_tty(TTY* p_tty)
 	}
 	// 默认为输入模式
 	state = typing;
+	p_pattern = 0;
+	current_row = 0;
+	current_col = 0;
 }
 
 /*======================================================================*
@@ -102,10 +106,14 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 			if (!(key & FLAG_EXT)) {
 				if (state == typing) {
 					put_key(p_tty, key);
+					input[current_row][current_col++] = key;
 				} else if (state == searching) {
-					output[0] = key;
 					pattern[p_pattern++] = key;
-					disp_color_str(output, 0x0b);
+                    int tmp = disp_pos;
+                    disp_pos = 160*23;
+                    disp_str(pattern);
+                    disp_pos = tmp;
+					out_color_char(p_tty->p_console, key, 0x0b);
 				}
 			}
 			else {
@@ -115,15 +123,25 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 				switch(raw_code) {
 					case ESC:
 						if (state == typing) {
+						    int tmp = disp_pos;
+						    disp_pos = 160*24;
+						    disp_str("typing to searching");
+						    disp_pos = tmp;
 							state = searching;
 							disable_irq(CLOCK_IRQ);
-						} else if (state == searching) {
+						} else if (state == done) {
+                            int tmp = disp_pos;
+                            disp_pos = 160*24;
+                            disp_str("done to typing");
+                            disp_pos = tmp;
 							reset_search(p_tty);
 							state = typing;
 							enable_irq(CLOCK_IRQ);
 						}
 						break;
 					case TAB:
+					    // TODO
+					    input[current_row][current_col++] = '\t';
 						cursor = p_tty->p_console->cursor;
 						space_cnt = 4 - (cursor % 4);
 						for (int i = 0; i < space_cnt; i++) {
@@ -137,11 +155,28 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 							current_row++;
 							current_col = 0;
 						} else if (state == searching) {
+                            int tmp = disp_pos;
+                            disp_pos = 160 * 21;
+                            disp_str(input[0]);
+                            disp_pos = 160 * 22;
+                            disp_str(input[1]);
+                            disp_pos = tmp;
 							search();
 						}
 						break;
 					case BACKSPACE:
-						put_key(p_tty, '\b');
+					    // TODO
+					    if (state == typing) {
+					        if (current_col > 0) {
+                                input[current_row][--current_col] = 0x00;
+                                put_key(p_tty, '\b');
+                            }
+                        } else if (state == searching) {
+					        if (p_pattern > 0) {
+                                pattern[--p_pattern] = 0x00;
+                                put_key(p_tty, '\b');
+                            }
+					    }
 						break;
 					case UP:
 					    if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
@@ -232,7 +267,7 @@ int search() {
 			if (result != 0) {
 				char output[2] = {'\0', '\0'};
 				output[0] = input[i][j];
-				disp_str(output);
+				disp_color_str(output, DEFAULT_CHAR_COLOR);
 			} else {
 				disp_color_str(pattern, 0x0b);
 				j += strlen(pattern) - 1;
@@ -251,7 +286,7 @@ void reset_search(TTY *p_tty) {
 
 	disp_pos = 0;
 	for (int i = 0; i <= current_row; i++) {
-		disp_str(input[i]);
+		disp_color_str(input[i], DEFAULT_CHAR_COLOR);
 	}
 }
 
@@ -268,15 +303,28 @@ PRIVATE int strncmp(const char *s1, const char *s2, int len) {
     return 0;
 }
 
-PRIVATE int strlen(const char *str) {
+int strlen(const char *str) {
 	int len = 0;
-	while (str) {
+	while (str[len] != '\0') {
 		len++;
-		str++;
 	}
 	return len;
 }
 
 PUBLIC void clear_screen() {
-    disp_str("clear screen");
+	disp_pos = 0;
+	for (int i = 0; i < LINES; i++) {
+		for (int j = 0; j < COLUMNS; j++) {
+			disp_color_str(" ", 0x08);
+		}
+	}
+	disp_pos = 0;
+	for (TTY *p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
+		init_screen(p_tty);
+	}
+	for (int i = 0; i <= current_row; i++) {
+		for (int j = 0; j < COLUMNS; j++) {
+			input[i][j] = 0x00;
+		}
+	}
 }

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="lab3"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="lab3">
+				<Option output="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/lab3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/hanqi/mysrc/os-lab/lab3/boot/include"/>
+					<Add directory="/home/hanqi/mysrc/os-lab/lab3/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 lab3"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="lab3/fast">
+				<Option output="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/lab3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/hanqi/mysrc/os-lab/lab3/boot/include"/>
+					<Add directory="/home/hanqi/mysrc/os-lab/lab3/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 lab3/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/hanqi/mysrc/os-lab/lab3/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/Makefile">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/boot.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/boot.bin">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/include/fat12hdr.inc">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/include/load.inc">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/include/pm.inc">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/loader.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/boot/loader.bin">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/console.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/const.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/global.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/keyboard.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/keymap.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/proc.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/protect.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/proto.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/sconst.inc">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/string.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/tty.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/include/type.h">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/clock.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/clock.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/console.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/console.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/global.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/global.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/i8259.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/i8259.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/kernel.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/kernel.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/keyboard.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/keyboard.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/main.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/main.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/proc.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/proc.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/protect.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/protect.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/start.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/start.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/syscall.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/syscall.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/tty.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/kernel/tty.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/klib.c">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/klib.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/kliba.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/kliba.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/string.asm">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/lib/string.o">
+			<Option target="lab3"/>
+		</Unit>
+		<Unit filename="/home/hanqi/mysrc/os-lab/lab3/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
