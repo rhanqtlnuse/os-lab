@@ -113,10 +113,6 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 					}
 				} else if (state == searching) {
 					pattern[p_pattern++] = key;
-                    int tmp = disp_pos;
-                    disp_pos = 160*23;
-                    disp_str(pattern);
-                    disp_pos = tmp;
 					out_color_char(p_tty->p_console, key, 0x0b);
 				}
 			}
@@ -127,17 +123,9 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
 				switch(raw_code) {
 					case ESC:
 						if (state == typing) {
-						    int tmp = disp_pos;
-						    disp_pos = 160*24;
-						    disp_str("typing to searching");
-						    disp_pos = tmp;
 							state = searching;
 							disable_irq(CLOCK_IRQ);
 						} else if (state == done) {
-                            int tmp = disp_pos;
-                            disp_pos = 160*24;
-                            disp_str("done to typing");
-                            disp_pos = tmp;
 							reset_search(p_tty);
 							enable_irq(CLOCK_IRQ);
 						}
@@ -175,19 +163,12 @@ PUBLIC void in_process(TTY* p_tty, u32 key)
                                 current_col = 0;
                             }
 						} else if (state == searching) {
-                            int tmp = disp_pos;
-                            disp_pos = 160 * 21;
-                            disp_str(input[0]);
-                            disp_pos = 160 * 22;
-                            disp_str(input[1]);
-                            disp_pos = tmp;
 							search();
 						}
 						break;
 					case BACKSPACE:
 					    if (state == typing) {
                             if (current_col > 0) {
-                                // TODO
                                 if (input[current_row][current_col-1] == '\t') {
                                     int max_steps = current_col - current_col / 4 * 4;
                                     if (max_steps == 0) {
@@ -330,6 +311,9 @@ PUBLIC void clear_screen() {
 	disp_pos = 0;
 	for (TTY *p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
 		init_screen(p_tty);
+		// 这里讨巧了
+		out_char(p_tty->p_console, ' ');
+		out_char(p_tty->p_console, '\b');
 	}
     for (int i = 0; i < LINES; i++) {
         for (int j = 0; j < COLUMNS; j++) {
@@ -368,7 +352,9 @@ int isAlnumOrTable(int ch) {
         return 1;
     } else if (ch == '\t') {
         return 1;
-    } else {
+    } else if (ch == ' ') {
+		return 1;
+	} else {
         return 0;
     }
 }

@@ -23,8 +23,8 @@
       <file leaf-file-name="tty.c" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/kernel/tty.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="249">
-              <caret line="211" column="44" lean-forward="true" selection-start-line="211" selection-start-column="44" selection-end-line="211" selection-end-column="44" />
+            <state relative-caret-position="-297">
+              <caret line="221" column="29" lean-forward="true" selection-start-line="221" selection-start-column="29" selection-end-line="221" selection-end-column="29" />
               <folding>
                 <element signature="e#1146#1594#0" />
                 <element signature="e#1596#1759#0" />
@@ -158,16 +158,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1526880935352</updated>
-      <workItem from="1526880940842" duration="17358000" />
+      <workItem from="1526880940842" duration="17996000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17358000" />
+    <option name="totallyTimeSpent" value="17996000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1920" height="1055" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21255274" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -230,8 +229,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/kernel/tty.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="249">
-          <caret line="211" column="44" lean-forward="true" selection-start-line="211" selection-start-column="44" selection-end-line="211" selection-end-column="44" />
+        <state relative-caret-position="-297">
+          <caret line="221" column="29" lean-forward="true" selection-start-line="221" selection-start-column="29" selection-end-line="221" selection-end-column="29" />
           <folding>
             <element signature="e#1146#1594#0" />
             <element signature="e#1596#1759#0" />

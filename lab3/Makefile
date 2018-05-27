@@ -20,6 +20,7 @@ ASMKFLAGS	= -I include/ -f elf
 CFLAGS		= -I include/ -c -fno-builtin -fno-stack-protector
 LDFLAGS		= -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
+RUN             = $(shell bochs)
 
 # This Program
 ORANGESBOOT	= boot/boot.bin boot/loader.bin
@@ -43,6 +44,8 @@ all : realclean everything
 
 image : realclean everything clean buildimg
 
+run : realclean everything clean buildimg shellrun
+
 clean :
 	rm -f $(OBJS)
 
@@ -59,6 +62,9 @@ buildimg :
 	sudo cp -fv boot/loader.bin /mnt/floppy/
 	sudo cp -fv kernel.bin /mnt/floppy
 	sudo umount /mnt/floppy
+
+shellrun:
+	bochs
 
 boot/boot.bin : boot/boot.asm boot/include/load.inc boot/include/fat12hdr.inc
 	$(ASM) $(ASMBFLAGS) -o $@ $<
