@@ -20,11 +20,6 @@
 PUBLIC void clock_handler(int irq)
 {
 	ticks++;
-
-	// 只有在未睡眠的情况下才能继续执行
-	if (p_proc_ready->sleep == 0 && !p_proc_ready->blocked) {
-		p_proc_ready->ticks--;
-	}
 	
 	// 减少睡眠时间
 	for (int i = 0; i < NR_TASKS; i++) {
@@ -37,12 +32,7 @@ PUBLIC void clock_handler(int irq)
 		return;
 	}
 
-	if (p_proc_ready->ticks > 0) {
-		return;
-	}
-
 	schedule();
-
 }
 
 /*======================================================================*

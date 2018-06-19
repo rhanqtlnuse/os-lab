@@ -27,6 +27,7 @@ global  disable_irq
 ; ========================================================================
 disp_str:
 	push	ebp
+
 	mov	ebp, esp
 
 	mov	esi, [ebp + 8]	; pszInfo
@@ -56,7 +57,7 @@ disp_str:
 
 .2:
 	mov	[disp_pos], edi
-
+	
 	pop	ebp
 	ret
 

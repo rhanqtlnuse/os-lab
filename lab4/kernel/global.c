@@ -22,7 +22,7 @@ PUBLIC	char			task_stack[STACK_SIZE_TOTAL];
 PUBLIC	TASK            task_table[NR_TASKS] = {
                                 {TestA, STACK_SIZE_TESTA, "TestA"},
 				{TestB, STACK_SIZE_TESTB, "TestB"},
-				{TestC, STACK_SIZE_TESTC, "TestC"},
+				{ProcessC, STACK_SIZE_PROCESSC, "ProcessC"},
                                 {ProcessD, STACK_SIZE_PROCESSD, "ProcessD"},
                                 {ProcessE, STACK_SIZE_PROCESSE, "ProcessE"}
                         };

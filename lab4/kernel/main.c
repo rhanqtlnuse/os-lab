@@ -13,14 +13,17 @@
 #include "proc.h"
 #include "global.h"
 
-#define DEFAULT_PRIORITY 50
-#define CHAIRS 3
+#define CHAIRS 1
 
 void cut_hair();
 void customer();
 void get_hair_cut(int id);
-void leave(int id);
+void leave(int id, int flag);
 void clear_screen();
+
+#define BUF_SIZE 255
+
+char output[BUF_SIZE];
 
 /*======================================================================*
                             kernel_main
@@ -38,6 +41,7 @@ PUBLIC int kernel_main()
 		strcpy(p_proc->p_name, p_task->name);	// name of the process
 		p_proc->pid = i;			// pid
 		p_proc->sleep = 0;
+		p_proc->blocked = FALSE;
 		p_proc->ldt_sel = selector_ldt;
 
 		memcpy(&p_proc->ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3],
@@ -72,7 +76,6 @@ PUBLIC int kernel_main()
 	for (i = 0; i < NR_TASKS; i++) {
 		proc_table[i].sleep = 0;
 		proc_table[i].blocked = FALSE;
-		proc_table[i].ticks = proc_table[i].priority = DEFAULT_PRIORITY;
 	}
 
 	clear_screen();
@@ -126,63 +129,84 @@ void TestA()
 }
 
 // 理发师
-void TestB()
-{
+void TestB() {
 	while(1) {
 		sem_p(&customers);
 		sem_p(&mutex);
 		waiting--;
-		sem_v(&barbers);
 		sem_v(&mutex);
+		sem_v(&barbers);
 		cut_hair();
 	}
 }
 
 void cut_hair() {
 	my_disp_color_str("barber cuts hair\n", BLUE);
-	milli_delay(2000);
+	process_sleep(20000);
 }
 
 void customer() {
 	while (1) {
 		sem_p(&mutex);
 		customer_id++;
+		int tmp = customer_id;
 		if (waiting < CHAIRS) {
 			waiting++;
-			my_disp_color_str("customer #", GREEN);
-			disp_color_int(customer_id, GREEN);
-			my_disp_color_str(" comes and wait\n", GREEN);
-			milli_delay(1000);
+
+			// 这里出现令人智熄的输出不完整的问题，所以决定先拼在一起，放到一个函数里
+			// my_disp_color_str("customer #", GREEN);
+			// disp_color_int(customer_id, GREEN);
+			// my_disp_color_str(" comes and wait\n", GREEN);
+			// 以及为什么在同一个函数中使用两次 disp_str 会 gg？
+			come(tmp);
+			sem_v(&mutex);
+
 			sem_v(&customers);
-			sem_v(&mutex);
 			sem_p(&barbers);
-			get_hair_cut(customer_id);
+			get_hair_cut(tmp);
 		} else {
+			leave(tmp, 1);
 			sem_v(&mutex);
-			leave(customer_id);
 		}
 	}
 }
 
-void get_hair_cut(int id) {
-	my_disp_color_str("customer #", PURPLE);
-	disp_color_int(id, PURPLE);
-	my_disp_color_str(" gets hair cut\n", PURPLE);
-	milli_delay(2000);
-	my_disp_color_str("customer #", PURPLE);
-	disp_color_int(id, PURPLE);
-	my_disp_color_str(" leaves\n", PURPLE);
+void come(int id) {
+	milli_delay(5000);
+	strcpy(output, "customer ");
+	itoa(output + 9, id);
+	strcpy(output + strlen(output), " comes and wait\n");
+	my_disp_color_str(output, GREEN);
+	clear_buffer();
 }
 
-void leave(int id) {
-	milli_delay(1000);
-	my_disp_color_str("no seats, customer #", WHITE);
-	disp_color_int(id, WHITE);
-	my_disp_color_str(" leaves\n", WHITE);
+void get_hair_cut(int id) {
+	milli_delay(5000);
+	strcpy(output, "customer ");
+	itoa(output + 9, id);
+	strcpy(output + strlen(output), " gets hair cut\n");
+	my_disp_color_str(output, PURPLE);
+	clear_buffer();
+	
+	leave(id, 0);
+}
+
+void leave(int id, int flag) {
+	milli_delay(5000);
+	if (flag) {
+		strcpy(output, "no seats, ");
+	} else {
+		strcpy(output, "got hair cut, ");
+	}
+	strcpy(output + strlen(output), "customer ");
+	itoa(output + strlen(output), id);
+	strcpy(output + strlen(output), " leaves\n");
+	my_disp_color_str(output, flag ? WHITE : PURPLE);
+	clear_buffer();
 }
 
 // 顾客
-void TestC() {
+void ProcessC() {
 	customer();
 }
 
@@ -202,4 +226,20 @@ void clear_screen() {
 		disp_str(" ");
 	}
 	disp_pos = 0;
+}
+
+void clear_buffer() {
+	for (int i = 0; i < BUF_SIZE; i++) {
+		output[i] = '\0';
+	}
+}
+
+int strlen(const char *str) {
+	int length = 0;
+	int i = 0;
+	while (str[i] != '\0') {
+		length++;
+		i++;
+	}
+	return length;
 }

@@ -36,9 +36,6 @@ typedef struct s_proc {
 	u16 ldt_sel;               /* gdt selector giving ldt base and limit */
 	DESCRIPTOR ldts[LDT_SIZE]; /* local descriptors for code and data */
 
-    int ticks;                 /* remained ticks */
-    int priority;
-
 	int sleep;              /* 睡眠时间 */
 	int blocked;
 
@@ -65,13 +62,13 @@ typedef struct s_sema {
 /* stacks of tasks */
 #define STACK_SIZE_TESTA	0x8000
 #define STACK_SIZE_TESTB	0x8000
-#define STACK_SIZE_TESTC	0x8000
+#define STACK_SIZE_PROCESSC	0x8000
 #define STACK_SIZE_PROCESSD	0x8000
 #define STACK_SIZE_PROCESSE	0x8000
 
 #define STACK_SIZE_TOTAL	(STACK_SIZE_TESTA + \
 				STACK_SIZE_TESTB + \
-				STACK_SIZE_TESTC + \
+				STACK_SIZE_PROCESSC + \
 				STACK_SIZE_PROCESSD + \
 				STACK_SIZE_PROCESSE)
 

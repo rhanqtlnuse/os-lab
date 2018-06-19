@@ -16,36 +16,19 @@
 /*======================================================================*
                               schedule
  *======================================================================*/
-PUBLIC void schedule()
-{
-	PROCESS* p;
-	int	 greatest_ticks = 0;
-
-	// 找出剩余处理时间最长的进程
-	// 如果所有进程的剩余处理时间都为 0，则将每个进程的处理时间赋值为其优先级
-	while (!greatest_ticks) {
-		for (p = proc_table; p < proc_table+NR_TASKS; p++) {
-			if (!p->blocked && p->ticks > greatest_ticks) {
-				greatest_ticks = p->ticks;
-				p_proc_ready = p;
-			}
+PUBLIC void schedule() {
+	do {
+		p_proc_ready++;
+		if (p_proc_ready >= proc_table + NR_TASKS) {
+			p_proc_ready = proc_table;
 		}
-
-		if (!greatest_ticks) {
-			for (p = proc_table; p < proc_table+NR_TASKS; p++) {
-				if (!p->blocked) {
-					p->ticks = p->priority;
-				}
-			}
-		}
-	}
+	} while (p_proc_ready->sleep > 0 || p_proc_ready->blocked);
 }
 
 /*======================================================================*
                            sys_get_ticks
  *======================================================================*/
-PUBLIC int sys_get_ticks()
-{
+PUBLIC int sys_get_ticks() {
 	return ticks;
 }
 
@@ -78,9 +61,18 @@ PUBLIC void sys_process_sleep(int milli_seconds) {
 }
 
 PUBLIC void sys_disp_str(char *str) {
+	wind();
 	disp_str(str);
 }
 
 PUBLIC void sys_disp_color_str(char *str, int color) {
+	wind();
 	disp_color_str(str, color);
+}
+
+void wind() {
+	if (disp_pos >= 80 * 25 * 2) {
+		clear_screen();
+		disp_pos = 0;
+	}
 }
