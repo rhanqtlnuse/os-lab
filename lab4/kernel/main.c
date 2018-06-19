@@ -13,7 +13,7 @@
 #include "proc.h"
 #include "global.h"
 
-#define CHAIRS 1
+#define CHAIRS 2
 
 void cut_hair();
 void customer();
@@ -123,14 +123,12 @@ void initialize() {
  *======================================================================*/
 void TestA()
 {
-	while (1) {
-		milli_delay(10);
-	}
+	while (1) {}
 }
 
 // 理发师
 void TestB() {
-	while(1) {
+	while (1) {
 		sem_p(&customers);
 		sem_p(&mutex);
 		waiting--;
@@ -158,13 +156,16 @@ void customer() {
 			// disp_color_int(customer_id, GREEN);
 			// my_disp_color_str(" comes and wait\n", GREEN);
 			// 以及为什么在同一个函数中使用两次 disp_str 会 gg？
+			process_sleep(10000);
 			come(tmp);
 			sem_v(&mutex);
 
 			sem_v(&customers);
 			sem_p(&barbers);
+			process_sleep(5000);
 			get_hair_cut(tmp);
 		} else {
+			process_sleep(5000);
 			leave(tmp, 1);
 			sem_v(&mutex);
 		}
@@ -172,7 +173,6 @@ void customer() {
 }
 
 void come(int id) {
-	milli_delay(5000);
 	strcpy(output, "customer ");
 	itoa(output + 9, id);
 	strcpy(output + strlen(output), " comes and wait\n");
@@ -181,18 +181,15 @@ void come(int id) {
 }
 
 void get_hair_cut(int id) {
-	milli_delay(5000);
 	strcpy(output, "customer ");
 	itoa(output + 9, id);
 	strcpy(output + strlen(output), " gets hair cut\n");
 	my_disp_color_str(output, PURPLE);
-	clear_buffer();
-	
+	clear_buffer();	
 	leave(id, 0);
 }
 
 void leave(int id, int flag) {
-	milli_delay(5000);
 	if (flag) {
 		strcpy(output, "no seats, ");
 	} else {
