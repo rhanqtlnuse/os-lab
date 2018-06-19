@@ -13,9 +13,6 @@
 #include "proc.h"
 #include "global.h"
 
-extern void disable_int();
-extern void enable_int();
-
 /*======================================================================*
                               schedule
  *======================================================================*/
@@ -53,7 +50,6 @@ PUBLIC int sys_get_ticks()
 }
 
 PUBLIC void sys_sem_p(semaphore *s) {
-	disable_int();
 	s->value--;
 	if (s->value < 0) {
 		s->waiting_queue[s->tail] = p_proc_ready;
@@ -61,11 +57,9 @@ PUBLIC void sys_sem_p(semaphore *s) {
 		p_proc_ready->blocked = TRUE;
 		schedule();
 	}
-	enable_int();
 }
 
 PUBLIC void sys_sem_v(semaphore *s) {
-	disable_int();
 	s->value++;
 	if (s->value <= 0) {
 		PROCESS *p = s->waiting_queue[s->head];
@@ -73,7 +67,6 @@ PUBLIC void sys_sem_v(semaphore *s) {
 		p->blocked = FALSE;
 		schedule();
 	}
-	enable_int();
 }
 
 PUBLIC void sys_process_sleep(int milli_seconds) {

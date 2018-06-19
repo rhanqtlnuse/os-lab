@@ -20,8 +20,6 @@ global	out_byte
 global	in_byte
 global  enable_irq
 global  disable_irq
-global	enable_int
-global	disable_int
 
 
 ; ========================================================================
@@ -197,10 +195,3 @@ enable_8:
         popf
         ret
 
-enable_int:
-	sti
-	ret
-
-disable_int:
-	cli
-	ret

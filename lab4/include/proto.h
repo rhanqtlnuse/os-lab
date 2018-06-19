@@ -45,7 +45,6 @@ PUBLIC  int     sys_get_ticks();        /* sys_call */
 PUBLIC  void    sys_sem_p(semaphore *s);
 PUBLIC  void    sys_sem_v(semaphore *s);
 PUBLIC  void    sys_process_sleep(int milli_seconds);
-PUBLIC  void    sys_process_wakeup(PROCESS *p);
 PUBLIC  void    sys_disp_str(char *str);
 PUBLIC  void    sys_disp_color_str(char *str, int color);
 
