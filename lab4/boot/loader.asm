@@ -45,8 +45,8 @@ LABEL_START:			; <--- 从这里开始 *************
 	mov	ss, ax
 	mov	sp, BaseOfStack
 
-	mov	dh, 0			; "Loading  "
-	call	DispStrRealMode		; 显示字符串
+	; mov	dh, 0			; "Loading  "
+	; call	DispStrRealMode		; 显示字符串
 
 	; 得到内存数
 	mov	ebx, 0			; ebx = 后续值, 开始时需为 0
@@ -138,14 +138,14 @@ LABEL_FILENAME_FOUND:			; 找到 KERNEL.BIN 后便来到这里继续
 	mov	ax, cx			; ax <- Sector 号
 
 LABEL_GOON_LOADING_FILE:
-	push	ax			; ┓
-	push	bx			; ┃
-	mov	ah, 0Eh			; ┃ 每读一个扇区就在 "Loading  " 后面打一个点, 形成这样的效果:
-	mov	al, '.'			; ┃
-	mov	bl, 0Fh			; ┃ Loading ......
-	int	10h			; ┃
-	pop	bx			; ┃
-	pop	ax			; ┛
+	; push	ax			; ┓
+	; push	bx			; ┃
+	; mov	ah, 0Eh			; ┃ 每读一个扇区就在 "Loading  " 后面打一个点, 形成这样的效果:
+	; mov	al, '.'			; ┃
+	; mov	bl, 0Fh			; ┃ Loading ......
+	; int	10h			; ┃
+	; pop	bx			; ┃
+	; pop	ax			; ┛
 
 	mov	cl, 1
 	call	ReadSector
@@ -163,8 +163,8 @@ LABEL_FILE_LOADED:
 
 	call	KillMotor		; 关闭软驱马达
 
-	mov	dh, 1			; "Ready."
-	call	DispStrRealMode		; 显示字符串
+	; mov	dh, 1			; "Ready."
+	; call	DispStrRealMode		; 显示字符串
 	
 ; 下面准备跳入保护模式 -------------------------------------------
 

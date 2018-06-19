@@ -13,7 +13,7 @@
 #include "proc.h"
 #include "global.h"
 
-#define CHAIRS 2
+#define CHAIRS 3
 
 void cut_hair();
 void customer();
